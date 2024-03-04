@@ -223,7 +223,7 @@ func (p *AzureProvider) EnrichSession(ctx context.Context, session *sessions.Ses
 		if err != nil {
 			return fmt.Errorf("unable to get groups from Microsoft Graph: %v", err)
 		}
-		session.Groups = util.RemoveDuplicateStr(append(session.Groups, groups...))
+		session.Groups = util.RemoveDuplicateStr(groups)
 	}
 	return nil
 }
