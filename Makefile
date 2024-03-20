@@ -4,7 +4,7 @@ GOLANGCILINT ?= golangci-lint
 BINARY := oauth2-proxy
 VERSION ?= $(shell git describe --always --dirty --tags 2>/dev/null || echo "undefined")
 # Allow to override image registry.
-REGISTRY   ?= quay.io/oauth2-proxy
+REGISTRY   ?= frinx
 REPOSITORY ?= oauth2-proxy
 
 DATE := $(shell date +"%Y%m%d")
@@ -42,7 +42,7 @@ build: validate-go-version clean $(BINARY)
 $(BINARY):
 	CGO_ENABLED=0 $(GO) build -a -installsuffix cgo -ldflags="-X main.VERSION=${VERSION}" -o $@ github.com/oauth2-proxy/oauth2-proxy/v7
 
-DOCKER_BUILD_PLATFORM         ?= linux/amd64,linux/arm64,linux/ppc64le,linux/arm/v7
+DOCKER_BUILD_PLATFORM         ?= linux/amd64
 DOCKER_BUILD_RUNTIME_IMAGE    ?= gcr.io/distroless/static:nonroot
 DOCKER_BUILDX_ARGS            ?= --build-arg RUNTIME_IMAGE=${DOCKER_BUILD_RUNTIME_IMAGE} --build-arg VERSION=${VERSION}
 DOCKER_BUILDX                 := docker buildx build ${DOCKER_BUILDX_ARGS} --pull
@@ -50,7 +50,7 @@ DOCKER_BUILDX_X_PLATFORM      := $(DOCKER_BUILDX) --platform ${DOCKER_BUILD_PLAT
 DOCKER_BUILDX_PUSH            := $(DOCKER_BUILDX) --push
 DOCKER_BUILDX_PUSH_X_PLATFORM := $(DOCKER_BUILDX_PUSH) --platform ${DOCKER_BUILD_PLATFORM}
 
-DOCKER_BUILD_PLATFORM_ALPINE         ?= linux/amd64,linux/arm64,linux/ppc64le,linux/arm/v6,linux/arm/v7
+DOCKER_BUILD_PLATFORM_ALPINE         ?= linux/amd64
 DOCKER_BUILD_RUNTIME_IMAGE_ALPINE    ?= alpine:3.19.1
 DOCKER_BUILDX_ARGS_ALPINE            ?= --build-arg RUNTIME_IMAGE=${DOCKER_BUILD_RUNTIME_IMAGE_ALPINE} --build-arg VERSION=${VERSION}
 DOCKER_BUILDX_X_PLATFORM_ALPINE      := docker buildx build ${DOCKER_BUILDX_ARGS_ALPINE} --platform ${DOCKER_BUILD_PLATFORM_ALPINE}

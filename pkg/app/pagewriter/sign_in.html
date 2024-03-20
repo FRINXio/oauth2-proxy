@@ -1,132 +1,254 @@
 {{define "sign_in.html"}}
 <!DOCTYPE html>
 <html lang="en" charset="utf-8">
-  <head>
+
+<head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sign In</title>
-    <link rel="stylesheet" href="{{.ProxyPrefix}}/static/css/bulma.min.css">
-
     <style>
-      body {
-        height: 100vh;
-      }
-      .sign-in-box {
-        max-width: 400px;
-        margin: 1.25rem auto;
-      }
-      .logo-box {
-        margin: 1.5rem 3rem;
-      }
-      .alert {
-        padding: 5px;
-        background-color: #f44336; /* Red */
-        color: white;
-        margin-bottom: 5px;
-        border-radius: 5px
-      }
-      /* The close button */
-      .closebtn {
-        margin-left: 10px;
-        color: white;
-        font-weight: bold;
-        float: right;
-        font-size: 22px;
-        line-height: 20px;
-        cursor: pointer;
-        transition: 0.3s;
-      }
-      /* When moving the mouse over the close button */
-      .closebtn:hover {
-        color: black;
-      }
-      footer a {
-        text-decoration: underline;
-      }
-    </style>
-  </head>
-  <body class="has-background-light">
-  <section class="section has-background-light">
-    <div class="box block sign-in-box has-text-centered">
-      {{ if .LogoData }}
-      <div class="block logo-box">
-        {{.LogoData}}
-      </div>
-      {{ end }}
-
-      <form method="GET" action="{{.ProxyPrefix}}/start">
-        <input type="hidden" name="rd" value="{{.Redirect}}">
-          {{ if .SignInMessage }}
-          <p class="block">{{.SignInMessage}}</p>
-          {{ end}}
-          <button type="submit" class="button block is-primary">Sign in with {{.ProviderName}}</button>
-      </form>
-
-      {{ if .CustomLogin }}
-      <hr>
-
-      <form method="POST" action="{{.ProxyPrefix}}/sign_in" class="block">
-        <input type="hidden" name="rd" value="{{.Redirect}}">
-
-        <div class="field">
-          <label class="label" for="username">Username</label>
-          <div class="control">
-            <input class="input" type="text" placeholder="e.g. userx@example.com"  name="username" id="username">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label" for="password">Password</label>
-          <div class="control">
-            <input class="input" type="password" placeholder="********" name="password" id="password">
-          </div>
-        </div>
-        <button class="button is-primary">Sign in</button>
-      </form>
-      {{ end }}
-
-      {{ if eq .StatusCode 400 401 }}
-      <div class="alert">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-        {{ if eq .StatusCode 400 }}
-        {{.StatusCode}}: Username cannot be empty
-        {{ else }}
-        {{.StatusCode}}: Invalid Username or Password
-        {{ end }}
-      </div> 
-      {{ end }}
-
-    </div>
-  </section>
-
-  <script>
-    if (window.location.hash) {
-      (function() {
-        var inputs = document.getElementsByName('rd');
-        for (var i = 0; i < inputs.length; i++) {
-          // Add hash, but make sure it is only added once
-          var idx = inputs[i].value.indexOf('#');
-          if (idx >= 0) {
-            // Remove existing hash from URL
-            inputs[i].value = inputs[i].value.substr(0, idx);
-          }
-          inputs[i].value += window.location.hash;
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(0deg, #ffffff, #d2f0ff, #ffffff);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-      })();
-    }
-  </script>
 
-  <footer class="footer has-text-grey has-background-light is-size-7">
-    <div class="content has-text-centered">
-    	{{ if eq .Footer "-" }}
-    	{{ else if eq .Footer ""}}
-    	<p>Secured with <a href="https://github.com/oauth2-proxy/oauth2-proxy#oauth2_proxy" class="has-text-grey">OAuth2 Proxy</a> version {{.Version}}</p>
-    	{{ else }}
-    	<p>{{.Footer}}</p>
-    	{{ end }}
+        .login-container {
+            background-color: rgb(255, 255, 255);
+            padding: 40px;
+            border-radius: 35px;
+            box-shadow: 0 0 35px 0 rgba(0, 0, 0, 0.06);
+            /* x: 0, y: 0, blur: 35px, spread: 0, color: rgba(0, 0, 0, 0.06) */
+            text-align: center;
+            max-width: 80%;
+            min-width: 250px;
+            width: 490px;
+            display: flex;
+            flex-direction: column;
+            gap: 70px;
+            position: relative;
+        }
+
+        .login-container img {
+            max-width: 400px;
+            margin: 0 auto;
+            /* Center the logo */
+        }
+
+        .login-container input[type="email"],
+        .login-container input[type="password"],
+        .login-container input[type="submit"] {
+            width: calc(100% - 30px);
+            /* Subtracting 30px for gap */
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            background-color: rgba(25, 23, 66, 0.1);
+        }
+
+        .login-container input[type="email"]:focus,
+        .login-container input[type="password"]:focus {
+            outline: none;
+        }
+
+        .login-container input[type="submit"]:hover {
+            background-color: #15376b;
+            outline: none;
+        }
+
+        .login-container input[type="submit"] {
+            background-color: #07a9ff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .toggle-label {
+            color: rgba(0, 0, 0, 0.5);
+            /* 50% opacity */
+            font-size: 12px;
+            margin-bottom: 70px;
+            /* Gap 15px */
+            background-color: white;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            z-index: -1;
+        }
+
+        .bottom-text {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.5);
+            /* 50% opacity */
+        }
+
+        .cech {
+            background-color: none;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: 0.4s;
+            transition: 0.4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: 0.4s;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #2196f3;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #2196f3;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .hah {
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+        }
+
+        .sign {
+            margin-bottom: 70px;
+        }
+
+        .formik {
+            color: black;
+            font-size: 15px;
+        }
+
+        .alert {
+            padding: 5px;
+            background-color: #f44336;
+            /* Red */
+            color: white;
+            margin-bottom: 5px;
+            border-radius: 5px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        {{ if .LogoData }}
+        {{.LogoData}}
+        {{ end }}
+
+        <div class="sign" style="display: flex; flex-direction: column; gap: 15px">
+            <form method="GET" action="{{.ProxyPrefix}}/start">
+                <input type="hidden" name="rd" value="{{.Redirect}}">
+                {{ if .SignInMessage }}
+                <p class="block">{{.SignInMessage}}</p>
+                {{ end}}
+                <input type="submit" value="Sign in with {{.ProviderName}}" />
+            </form>
+
+            {{ if .CustomLogin }}
+            <form method="POST" action="{{.ProxyPrefix}}/sign_in" class="block">
+                <input type="hidden" name="rd" value="{{.Redirect}}">
+                <input class="formik" type="email" name="Username or email address"
+                    placeholder="Username or email address" id="username" />
+                <input class="formik" type="password" name="password" placeholder="Password" id="password" />
+                <input type="submit" value="Sign In" />
+            </form>
+            {{ end }}
+        </div>
+
+        {{ if eq .StatusCode 400 401 }}
+        <div class="alert">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            {{ if eq .StatusCode 400 }}
+            {{.StatusCode}}: Username cannot be empty
+            {{ else }}
+            {{.StatusCode}}: Invalid Username or Password
+            {{ end }}
+        </div>
+        {{ end }}
+
+        <div class="overlay"></div>
     </div>
-	</footer>
 
-  </body>
+    <script>
+        if (window.location.hash) {
+            (function () {
+                var inputs = document.getElementsByName('rd');
+                for (var i = 0; i < inputs.length; i++) {
+                    // Add hash, but make sure it is only added once
+                    var idx = inputs[i].value.indexOf('#');
+                    if (idx >= 0) {
+                        // Remove existing hash from URL
+                        inputs[i].value = inputs[i].value.substr(0, idx);
+                    }
+                    inputs[i].value += window.location.hash;
+                }
+            })();
+        }
+    </script>
+
+</body>
+
 </html>
 {{end}}
