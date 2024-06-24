@@ -1,0 +1,59 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - 'master'  # produce latest image
+      - '[0-9]+.X-stable'  # produce stable-latest image
+
+    tags:
+    - 'vfrinx-[0-9]+.[0-9]+.[0-9]'  # produce release image (6.0.0)
+    - 'vfrinx-[0-9]+.[0-9]+.[0-9]-stable'  # produce stable release image (5.1.0)
+
+env:
+  # TODO: Change variable to your image's name.
+  IMAGE_NAME: frinx/oauth2-proxy
+  IMAGE_NAME_ORG: frinxio/oauth2-proxy
+
+jobs:
+  # Push image to GitHub Packages.
+  # See also https://docs.docker.com/docker-hub/builds/
+  build-image:
+    runs-on: ubuntu-latest
+  
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set tag for latest image
+        if: github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/master')
+        run: |
+          echo "IMAGE_TAG=$(echo 'latest')" >> "$GITHUB_ENV"
+
+      - name: Set tag for stable-latest image
+        if: github.ref_type == 'branch' && endsWith(github.ref, '-stable')
+        run: |
+          echo "IMAGE_TAG=$(echo 'stable-latest')" >> "$GITHUB_ENV"
+
+      - name: Set tag for stable-release image
+        if: github.ref_type == 'tag' && endsWith(github.ref, '-stable')
+        run: |
+          echo "IMAGE_TAG=$(echo $GITHUB_REF | cut -d / -f 3 | sed -e 's/^vfrinx-//' | sed -e 's/-stable//')" >> "$GITHUB_ENV"
+
+      - name: Set tag for release image
+        if: ${{ github.ref_type == 'tag' && !endsWith(github.ref, '-stable') }}
+        run: |
+          echo "IMAGE_TAG=$(echo $GITHUB_REF | cut -d / -f 3 | sed -e 's/^vfrinx-//')" >> "$GITHUB_ENV"
+
+      - name: Build image
+        run: VERSION=${IMAGE_TAG} make docker
+  
+      - name: Log into docker hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Push stable-release image
+        run: |
+          docker tag $IMAGE_NAME:${IMAGE_TAG}-alpine $IMAGE_NAME_ORG:${IMAGE_TAG}-alpine
+          docker push $IMAGE_NAME:${IMAGE_TAG}-alpine
+          docker push $IMAGE_NAME_ORG:${IMAGE_TAG}-alpine
